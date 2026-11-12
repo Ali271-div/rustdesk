@@ -573,6 +573,17 @@ jobs:
           path: ./SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.msi
           if-no-files-found: error
 
+      - name: Build Mo3en support client package
+        if: env.UPLOAD_ARTIFACT == 'true' && inputs.windows-only
+        shell: bash
+        run: |
+          rm -rf ./mo3en
+          cp -r ./rustdesk ./mo3en
+          mv ./mo3en/rustdesk.exe ./mo3en/mo3en.exe
+          pushd ./libs/portable
+          python3 ./generate.py -f ../../mo3en/ -o . -e ../../mo3en/mo3en.exe
+          popd
+          mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/Mo3en-Support-${{ matrix.job.arch }}.exe
       - name: Publish Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         if: env.UPLOAD_ARTIFACT == 'true' && env.PUBLISH_UPDATE_METADATA != 'true'
@@ -582,6 +593,7 @@ jobs:
           files: |
             ./SignOutput/rustdesk-*.msi
             ./SignOutput/rustdesk-*.exe
+            ./SignOutput/Mo3en-*.exe
 
   # The fallback for the flutter version, we use Sciter for 32bit Windows.
   build-for-windows-sciter:
